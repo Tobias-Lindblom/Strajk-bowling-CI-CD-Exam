@@ -4,13 +4,15 @@ import userEvent from "@testing-library/user-event";
 import BookingInfo from "./BookingInfo";
 
 /*
-Acceptanskriterier som testas:
+ACCEPTANSKRITERIER SOM TESTAS:
+
+User Story 1 - Bokningsfunktionalitet:
 1. Användaren ska kunna välja ett datum och en tid från ett kalender- och tidvalssystem
 2. Användaren ska kunna ange antal spelare (minst 1 spelare)
 3. Användaren ska kunna reservera ett eller flera banor beroende på antal spelare
 */
 
-describe("BookingInfo - Användaren ska kunna boka datum, tid och antal spelare/banor", () => {
+describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
   // Acceptanskriterium 1: Användaren ska kunna välja ett datum och en tid
   it("ska rendera datumväljare", () => {
     // Testar att datumväljaren finns och är av rätt typ (kalenderväljare)

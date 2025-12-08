@@ -13,12 +13,18 @@ User Story 1 - Bokningsfunktionalitet:
 3. Användaren ska kunna reservera ett eller flera banor beroende på antal spelare
 4. Ifall användaren inte fyller i något av ovanstående så ska ett felmeddelande visas
 5. Om det inte finns tillräckligt med lediga banor för det angivna antalet spelare,
-ska användaren få ett felmeddelande
+   ska användaren få ett felmeddelande
 
 User Story 2 - Skostorlekar:
 4. Om användaren försöker slutföra bokningen utan att ange skostorlek för en spelare
-som har valt att boka skor, ska systemet visa ett felmeddelande
+   som har valt att boka skor, ska systemet visa ett felmeddelande
 5. Om antalet personer och skor inte matchas ska ett felmeddelande visas
+
+User Story 3 - Ta bort skostorlek:
+2. När användaren tar bort skostorleken för en spelare ska systemet uppdatera bokningen
+   så att inga skor längre är bokade för den spelaren
+3. Om användaren tar bort skostorleken ska systemet inte inkludera den spelaren i skorantalet
+   och priset för skor i den totala bokningssumman
 */
 
 // Mock fetch
@@ -50,7 +56,7 @@ describe("Booking - Validering och felmeddelanden", () => {
 
   // User Story 1 - Acceptanskriterium 4:
   // Ifall användaren inte fyller i något av ovanstående ska ett felmeddelande visas
-  describe("Acceptanskriterium 4: Felmeddelande om fält inte är ifyllda", () => {
+  describe("User Story 1 - Acceptanskriterium 4: Felmeddelande om fält inte är ifyllda", () => {
     it("ska visa felmeddelande om inget fält är ifyllt", async () => {
       // Testar att alla fält måste vara ifyllda
       const user = userEvent.setup();
@@ -169,10 +175,10 @@ describe("Booking - Validering och felmeddelanden", () => {
     });
   });
 
-  // User story 1 - Acceptanskriterium 5:
-  // Om det inte finns tillräckligt med lediga banor för antalet spelare,
+  // User Story 1 - Acceptanskriterium 5:
+  // Om det inte finns tillräckligt med lediga banor för det angivna antalet spelare,
   // ska användaren få ett felmeddelande
-  describe("Acceptanskriterium 5: Felmeddelande om inte tillräckligt med lediga banor", () => {
+  describe("User Story 1 - Acceptanskriterium 5: Felmeddelande om inte tillräckligt med banor", () => {
     it("ska visa felmeddelande om 5 spelare bokar 1 bana (max 4 per bana)", async () => {
       // Testar att användaren får felmeddelande om för många spelare per bana
       const user = userEvent.setup();
@@ -364,9 +370,10 @@ describe("Booking - Validering och felmeddelanden", () => {
     });
   });
 
-  // User story 1 - Acceptanskriterium 2 & 3:
-  // Användaren ska kunna ange minst 1 spelare och reservera 1 eller flera banor
-  describe("Acceptanskriterium 2 & 3: Användaren kan reservera 1 eller flera banor", () => {
+  // User Story 1 - Acceptanskriterium 2 & 3:
+  // Användaren ska kunna ange antal spelare (minst 1 spelare)
+  // Användaren ska kunna reservera ett eller flera banor beroende på antal spelare
+  describe("User Story 1 - Acceptanskriterium 2 & 3: Reservera 1 eller flera banor", () => {
     it("ska kunna boka 1 bana med 1 spelare (minst 1 spelare)", async () => {
       // Testar att systemet accepterar minst 1 spelare och 1 bana (acceptanskriterium 2 & 3)
       const user = userEvent.setup();
@@ -592,9 +599,9 @@ describe("Booking - Validering och felmeddelanden", () => {
     });
   });
 
-  // User story 2 - Acceptanskriterium 5:
+  // User Story 2 - Acceptanskriterium 5:
   // Om antalet personer och skor inte matchas ska ett felmeddelande visas
-  describe("Acceptanskriterium (Skostorlekar) 5: Felmeddelande om antal skor inte matchar antal personer", () => {
+  describe("User Story 2 - Acceptanskriterium 5: Antal skor måste matcha antal personer", () => {
     it("ska visa felmeddelande om färre skor än personer", async () => {
       // Testar att antalet skor måste matcha antalet personer
       const user = userEvent.setup();
@@ -724,6 +731,171 @@ describe("Booking - Validering och felmeddelanden", () => {
             "Antalet skor måste stämma överens med antal spelare"
           )
         ).not.toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          "/confirmation",
+          expect.any(Object)
+        );
+      });
+    });
+  });
+
+  // User Story 3 - Acceptanskriterium 2 & 3:
+  // När användaren tar bort skostorleken för en spelare ska systemet uppdatera bokningen
+  // så att inga skor längre är bokade för den spelaren.
+  // Borttagna skor ska inte inkluderas i skorantalet och priset.
+  describe("User Story 3 - Acceptanskriterium 2 & 3: Ta bort skor och uppdatera bokning", () => {
+    it("ska kunna ta bort skor efter att ha lagt till dem", async () => {
+      // Testar att användaren kan ta bort skor som de tidigare lagt till
+      // Acceptanskriterium 2: Systemet ska uppdatera bokningen när skor tas bort
+      const user = userEvent.setup();
+      renderBooking();
+
+      // Lägg till 4 skor
+      const addShoeButton = screen.getByText("+");
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+
+      // Verifiera att 4 skor finns
+      let shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      expect(shoeInputs).toHaveLength(4);
+
+      // Ta bort en sko
+      const removeButtons = screen.getAllByText("-");
+      await user.click(removeButtons[3]); // Ta bort den sista
+
+      // Verifiera att bara 3 skor finns kvar (systemet har uppdaterat bokningen)
+      shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      expect(shoeInputs).toHaveLength(3);
+    });
+
+    it("ska kunna korrigera antal skor genom att ta bort för många tillagda skor", async () => {
+      // Testar att användaren kan korrigera om de råkat lägga till för många skor
+      // Acceptanskriterium 3: Borttagna skor ska inte inkluderas i skorantalet
+      const user = userEvent.setup();
+      const mockResponse = {
+        bookingDetails: {
+          when: "2023-12-25T18:00",
+          lanes: 1,
+          people: 2,
+          shoes: ["42", "44"],
+          bookingId: "STR9999",
+          price: 360,
+        },
+      };
+
+      global.fetch.mockResolvedValueOnce({
+        json: async () => mockResponse,
+      });
+
+      renderBooking();
+
+      const dateInput = screen.getByLabelText("Date");
+      const timeInput = screen.getByLabelText("Time");
+      const peopleInput = screen.getByLabelText("Number of awesome bowlers");
+      const lanesInput = screen.getByLabelText("Number of lanes");
+
+      await user.type(dateInput, "2023-12-25");
+      await user.type(timeInput, "18:00");
+      await user.type(peopleInput, "2");
+      await user.type(lanesInput, "1");
+
+      // Råka lägga till 4 skor istället för 2
+      const addShoeButton = screen.getByText("+");
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+      await user.click(addShoeButton);
+
+      let shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      expect(shoeInputs).toHaveLength(4);
+
+      // Ta bort 2 skor för att matcha antal personer (2)
+      let removeButtons = screen.getAllByText("-");
+      await user.click(removeButtons[3]);
+      await user.click(removeButtons[2]);
+
+      // Fyll i de 2 kvarvarande skorna
+      shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      expect(shoeInputs).toHaveLength(2);
+      await user.type(shoeInputs[0], "42");
+      await user.type(shoeInputs[1], "44");
+
+      const bookButton = screen.getByText("strIIIIIike!");
+      await user.click(bookButton);
+
+      // Bokningen ska gå igenom nu när antal skor = antal personer
+      await waitFor(() => {
+        expect(
+          screen.queryByText(
+            "Antalet skor måste stämma överens med antal spelare"
+          )
+        ).not.toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          "/confirmation",
+          expect.any(Object)
+        );
+      });
+    });
+
+    it("ska inte inkludera borttagna skor i slutlig bokning", async () => {
+      // Testar att borttagna skor inte räknas med i priset eller skorantalet
+      // Acceptanskriterium 3: Borttagna skor ska inte vara inkluderade
+      const user = userEvent.setup();
+
+      const mockResponse = {
+        bookingDetails: {
+          when: "2023-12-25T18:00",
+          lanes: 1,
+          people: 3,
+          shoes: ["38", "40", "42"],
+          bookingId: "STR1111",
+          price: 460,
+        },
+      };
+
+      global.fetch.mockResolvedValueOnce({
+        json: async () => mockResponse,
+      });
+
+      renderBooking();
+
+      const dateInput = screen.getByLabelText("Date");
+      const timeInput = screen.getByLabelText("Time");
+      const peopleInput = screen.getByLabelText("Number of awesome bowlers");
+      const lanesInput = screen.getByLabelText("Number of lanes");
+
+      await user.type(dateInput, "2023-12-25");
+      await user.type(timeInput, "18:00");
+      await user.type(peopleInput, "3");
+      await user.type(lanesInput, "1");
+
+      // Lägg till 5 skor först
+      const addShoeButton = screen.getByText("+");
+      for (let i = 0; i < 5; i++) {
+        await user.click(addShoeButton);
+      }
+
+      let shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      expect(shoeInputs).toHaveLength(5);
+
+      // Ta bort 2 skor så att bara 3 kvarstår (lika med antal personer)
+      let removeButtons = screen.getAllByText("-");
+      await user.click(removeButtons[4]);
+      await user.click(removeButtons[3]);
+
+      // Fyll i de 3 kvarvarande skorna
+      shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
+      await user.type(shoeInputs[0], "38");
+      await user.type(shoeInputs[1], "40");
+      await user.type(shoeInputs[2], "42");
+
+      const bookButton = screen.getByText("strIIIIIike!");
+      await user.click(bookButton);
+
+      // Verifiera att bokningen går igenom med bara 3 skor (de 2 borttagna räknas inte)
+      await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
           "/confirmation",
           expect.any(Object)
