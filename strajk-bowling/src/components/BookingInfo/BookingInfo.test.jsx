@@ -12,12 +12,15 @@ User Story 1 - Bokningsfunktionalitet:
 3. Användaren ska kunna reservera ett eller flera banor beroende på antal spelare
 */
 
+// Helper function för att rendera BookingInfo-komponenten
+const renderBookingInfo = (updateBookingDetails = vi.fn()) => {
+  return render(<BookingInfo updateBookingDetails={updateBookingDetails} />);
+};
+
 describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
   // Acceptanskriterium 1: Användaren ska kunna välja ett datum och en tid
   it("ska rendera datumväljare", () => {
-    // Testar att datumväljaren finns och är av rätt typ (kalenderväljare)
-    const mockUpdate = vi.fn();
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    renderBookingInfo();
 
     const dateInput = screen.getByLabelText("Date");
     expect(dateInput).toBeInTheDocument();
@@ -26,9 +29,7 @@ describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
 
   // Acceptanskriterium 1: Användaren ska kunna välja ett datum och en tid
   it("ska rendera tidväljare", () => {
-    // Testar att tidväljaren finns och är av rätt typ
-    const mockUpdate = vi.fn();
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    renderBookingInfo();
 
     const timeInput = screen.getByLabelText("Time");
     expect(timeInput).toBeInTheDocument();
@@ -37,9 +38,7 @@ describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
 
   // Acceptanskriterium 2: Användaren ska kunna ange antal spelare
   it("ska rendera fält för antal spelare", () => {
-    // Testar att fältet för antal spelare finns och är av rätt typ
-    const mockUpdate = vi.fn();
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    renderBookingInfo();
 
     const peopleInput = screen.getByLabelText("Number of awesome bowlers");
     expect(peopleInput).toBeInTheDocument();
@@ -48,9 +47,7 @@ describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
 
   // Acceptanskriterium 3: Användaren ska kunna reservera ett eller flera banor
   it("ska rendera fält för antal banor", () => {
-    // Testar att fältet för antal banor finns och är av rätt typ
-    const mockUpdate = vi.fn();
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    renderBookingInfo();
 
     const lanesInput = screen.getByLabelText("Number of lanes");
     expect(lanesInput).toBeInTheDocument();
@@ -59,67 +56,49 @@ describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
 
   // Acceptanskriterium 1: Användaren ska kunna välja ett datum och en tid
   it("ska anropa updateBookingDetails när användaren väljer datum", async () => {
-    // Testar att användaren faktiskt kan interagera med datumväljaren
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
-
-    const dateInput = screen.getByLabelText("Date");
-    await user.type(dateInput, "2023-12-25");
-
+    await user.type(screen.getByLabelText("Date"), "2023-12-25");
     expect(mockUpdate).toHaveBeenCalled();
   });
 
   // Acceptanskriterium 1: Användaren ska kunna välja ett datum och en tid
   it("ska anropa updateBookingDetails när användaren väljer tid", async () => {
-    // Testar att användaren faktiskt kan interagera med tidväljaren
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
-
-    const timeInput = screen.getByLabelText("Time");
-    await user.type(timeInput, "18:00");
-
+    await user.type(screen.getByLabelText("Time"), "18:00");
     expect(mockUpdate).toHaveBeenCalled();
   });
 
   // Acceptanskriterium 2: Användaren ska kunna ange antal spelare
   it("ska anropa updateBookingDetails när användaren anger antal spelare", async () => {
-    // Testar att användaren faktiskt kan ange antal spelare
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
-
-    const peopleInput = screen.getByLabelText("Number of awesome bowlers");
-    await user.type(peopleInput, "4");
-
+    await user.type(screen.getByLabelText("Number of awesome bowlers"), "4");
     expect(mockUpdate).toHaveBeenCalled();
   });
 
   // Acceptanskriterium 3: Användaren ska kunna reservera ett eller flera banor
   it("ska anropa updateBookingDetails när användaren anger antal banor", async () => {
-    // Testar att användaren faktiskt kan ange antal banor
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
-
-    const lanesInput = screen.getByLabelText("Number of lanes");
-    await user.type(lanesInput, "2");
-
+    await user.type(screen.getByLabelText("Number of lanes"), "2");
     expect(mockUpdate).toHaveBeenCalled();
   });
 
   // Acceptanskriterium 2: Användaren ska kunna ange antal spelare (minst 1 spelare)
   it("ska tillåta minst 1 spelare", async () => {
-    // Testar att systemet accepterar minst 1 spelare
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
-
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
     const peopleInput = screen.getByLabelText("Number of awesome bowlers");
     await user.type(peopleInput, "1");
@@ -130,11 +109,9 @@ describe("BookingInfo - User Story 1: Bokningsfunktionalitet", () => {
 
   // Acceptanskriterium 3: Användaren ska kunna reservera ett eller flera banor
   it("ska tillåta flera banor", async () => {
-    // Testar att systemet accepterar flera banor
-    const mockUpdate = vi.fn();
     const user = userEvent.setup();
-
-    render(<BookingInfo updateBookingDetails={mockUpdate} />);
+    const mockUpdate = vi.fn();
+    renderBookingInfo(mockUpdate);
 
     const lanesInput = screen.getByLabelText("Number of lanes");
     await user.type(lanesInput, "3");
