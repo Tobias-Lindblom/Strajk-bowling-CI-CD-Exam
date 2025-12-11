@@ -3,10 +3,10 @@ import { screen, waitFor } from "@testing-library/react";
 import { setup } from "./Booking.test.helpers";
 
 /*
-ACCEPTANSKRITERIER SOM TESTAS:
+Acceptanskriterier som testas:
 
 User Story 1 - Bokningsfunktionalitet:
-4. Ifall användaren inte fyller i något av ovanstående så ska ett felmeddelande visas
+4. VG - Ifall användaren inte fyller i något av ovanstående så ska ett felmeddelande visas
 */
 
 // Mock fetch

@@ -4,18 +4,18 @@ import userEvent from "@testing-library/user-event";
 import { renderBooking, setup, completeBooking } from "./Booking.test.helpers";
 
 /*
-ACCEPTANSKRITERIER SOM TESTAS:
+Acceptanskriterier som testas:
 
 User Story 2 - Skostorlekar:
-4. Om användaren försöker slutföra bokningen utan att ange skostorlek för en spelare
-   som har valt att boka skor, ska systemet visa ett felmeddelande
-5. Om antalet personer och skor inte matchas ska ett felmeddelande visas
+4. VG - Om användaren försöker slutföra bokningen utan att ange skostorlek för en spelare
+som har valt att boka skor, ska systemet visa ett felmeddelande
+5. VG - Om antalet personer och skor inte matchas ska ett felmeddelande visas
 
 User Story 3 - Ta bort skostorlek:
 2. När användaren tar bort skostorleken för en spelare ska systemet uppdatera bokningen
-   så att inga skor längre är bokade för den spelaren
+så att inga skor längre är bokade för den spelaren
 3. Om användaren tar bort skostorleken ska systemet inte inkludera den spelaren i skorantalet
-   och priset för skor i den totala bokningssumman
+och priset för skor i den totala bokningssumman
 */
 
 // Mock fetch
@@ -187,8 +187,7 @@ describe("Booking - Skostorlekar", () => {
     it("ska kunna ta bort skor efter att ha lagt till dem", async () => {
       // Testar att användaren kan ta bort skor som de tidigare lagt till
       // Acceptanskriterium 2: Systemet ska uppdatera bokningen när skor tas bort
-      const user = userEvent.setup();
-      renderBooking();
+      const user = await setup({});
 
       // Lägg till 4 skor
       const addShoeButton = screen.getByText("+");
@@ -213,46 +212,31 @@ describe("Booking - Skostorlekar", () => {
     it("ska kunna korrigera antal skor genom att ta bort för många tillagda skor", async () => {
       // Testar att användaren kan korrigera om de råkat lägga till för många skor
       // Acceptanskriterium 3: Borttagna skor ska inte inkluderas i skorantalet
-      const user = userEvent.setup();
-      const mockResponse = {
-        bookingDetails: {
+      await completeBooking(
+        {
+          date: "2023-12-25",
+          time: "18:00",
+          people: "2",
+          lanes: "1",
+          shoes: 4,
+        },
+        {
           when: "2023-12-25T18:00",
           lanes: 1,
           people: 2,
           shoes: ["42", "44"],
           bookingId: "STR9999",
           price: 360,
-        },
-      };
-
-      global.fetch.mockResolvedValueOnce({
-        json: async () => mockResponse,
-      });
-
-      renderBooking();
-
-      const dateInput = screen.getByLabelText("Date");
-      const timeInput = screen.getByLabelText("Time");
-      const peopleInput = screen.getByLabelText("Number of awesome bowlers");
-      const lanesInput = screen.getByLabelText("Number of lanes");
-
-      await user.type(dateInput, "2023-12-25");
-      await user.type(timeInput, "18:00");
-      await user.type(peopleInput, "2");
-      await user.type(lanesInput, "1");
+        }
+      );
 
       // Råka lägga till 4 skor istället för 2
-      const addShoeButton = screen.getByText("+");
-      await user.click(addShoeButton);
-      await user.click(addShoeButton);
-      await user.click(addShoeButton);
-      await user.click(addShoeButton);
-
       let shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
       expect(shoeInputs).toHaveLength(4);
 
       // Ta bort 2 skor för att matcha antal personer (2)
       let removeButtons = screen.getAllByText("-");
+      const user = userEvent.setup();
       await user.click(removeButtons[3]);
       await user.click(removeButtons[2]);
 
@@ -282,46 +266,31 @@ describe("Booking - Skostorlekar", () => {
     it("ska inte inkludera borttagna skor i slutlig bokning", async () => {
       // Testar att borttagna skor inte räknas med i priset eller skorantalet
       // Acceptanskriterium 3: Borttagna skor ska inte vara inkluderade
-      const user = userEvent.setup();
-
-      const mockResponse = {
-        bookingDetails: {
+      await completeBooking(
+        {
+          date: "2023-12-25",
+          time: "18:00",
+          people: "3",
+          lanes: "1",
+          shoes: 5,
+        },
+        {
           when: "2023-12-25T18:00",
           lanes: 1,
           people: 3,
           shoes: ["38", "40", "42"],
           bookingId: "STR1111",
           price: 460,
-        },
-      };
-
-      global.fetch.mockResolvedValueOnce({
-        json: async () => mockResponse,
-      });
-
-      renderBooking();
-
-      const dateInput = screen.getByLabelText("Date");
-      const timeInput = screen.getByLabelText("Time");
-      const peopleInput = screen.getByLabelText("Number of awesome bowlers");
-      const lanesInput = screen.getByLabelText("Number of lanes");
-
-      await user.type(dateInput, "2023-12-25");
-      await user.type(timeInput, "18:00");
-      await user.type(peopleInput, "3");
-      await user.type(lanesInput, "1");
+        }
+      );
 
       // Lägg till 5 skor först
-      const addShoeButton = screen.getByText("+");
-      for (let i = 0; i < 5; i++) {
-        await user.click(addShoeButton);
-      }
-
       let shoeInputs = screen.getAllByLabelText(/Shoe size \/ person/);
       expect(shoeInputs).toHaveLength(5);
 
       // Ta bort 2 skor så att bara 3 kvarstår (lika med antal personer)
       let removeButtons = screen.getAllByText("-");
+      const user = userEvent.setup();
       await user.click(removeButtons[4]);
       await user.click(removeButtons[3]);
 

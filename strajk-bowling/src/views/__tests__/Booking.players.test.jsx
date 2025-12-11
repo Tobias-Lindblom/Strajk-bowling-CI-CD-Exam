@@ -3,13 +3,13 @@ import { screen, waitFor } from "@testing-library/react";
 import { setup, completeBooking } from "./Booking.test.helpers";
 
 /*
-ACCEPTANSKRITERIER SOM TESTAS:
+Acceptanskriterier som testas:
 
 User Story 1 - Bokningsfunktionalitet:
 2. Användaren ska kunna ange antal spelare (minst 1 spelare)
 3. Användaren ska kunna reservera ett eller flera banor beroende på antal spelare
-5. Om det inte finns tillräckligt med lediga banor för det angivna antalet spelare,
-   ska användaren få ett felmeddelande
+5. VG- Om det inte finns tillräckligt med lediga banor för det angivna antalet spelare,
+ska användaren få ett felmeddelande
 */
 
 // Mock fetch

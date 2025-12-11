@@ -3,85 +3,59 @@ import { screen } from "@testing-library/react";
 import { renderConfirmation } from "./Confirmation.test.helpers";
 
 /*
-ACCEPTANSKRITERIER SOM TESTAS:
+Acceptanskriterier som testas:
 
 User Story 4 - Slutföra bokning och få bekräftelse:
 3. Systemet ska beräkna och visa den totala summan för bokningen baserat på antalet spelare (120 kr per person) samt antalet reserverade banor (100 kr per bana)
 */
 
 describe("Confirmation - Prisberäkning", () => {
-  // Acceptanskriterium 3: Systemet ska beräkna och visa totalsumma
-  it("ska visa korrekt totalsumma baserat på 120 kr/person + 100 kr/bana", () => {
-    const confirmationDetails = {
-      when: "2023-12-25T18:00",
+  // Acceptanskriterium 3: Systemet ska beräkna och visa totalsumma (120 kr/person + 100 kr/bana)
+  it.each([
+    {
       people: 2,
       lanes: 1,
-      bookingId: "STR5678",
-      price: 340, // 2 * 120 + 1 * 100 = 340
-    };
-
-    renderConfirmation(confirmationDetails);
-
-    expect(screen.getByText("340 sek")).toBeInTheDocument();
-  });
-
-  // Acceptanskriterium 3: Beräkning för flera personer och banor
-  it("ska beräkna korrekt pris för 4 personer och 1 bana (120*4 + 100*1 = 580 kr)", () => {
-    const confirmationDetails = {
-      when: "2023-12-25T18:00",
+      expectedPrice: 340,
+      description: "2 personer, 1 bana",
+    },
+    {
       people: 4,
       lanes: 1,
-      bookingId: "STR9999",
-      price: 580,
-    };
-
-    renderConfirmation(confirmationDetails);
-
-    expect(screen.getByText("580 sek")).toBeInTheDocument();
-  });
-
-  // Acceptanskriterium 3: Beräkning för flera banor
-  it("ska beräkna korrekt pris för 8 personer och 2 banor (120*8 + 100*2 = 1160 kr)", () => {
-    const confirmationDetails = {
-      when: "2023-12-25T18:00",
+      expectedPrice: 580,
+      description: "4 personer, 1 bana",
+    },
+    {
       people: 8,
       lanes: 2,
-      bookingId: "STR1111",
-      price: 1160,
-    };
-
-    renderConfirmation(confirmationDetails);
-
-    expect(screen.getByText("1160 sek")).toBeInTheDocument();
-  });
-
-  // Acceptanskriterium 3: Edge case - 1 person och 1 bana (minsta möjliga bokning)
-  it("ska beräkna korrekt pris för minsta bokning: 1 person och 1 bana (120*1 + 100*1 = 220 kr)", () => {
-    const confirmationDetails = {
-      when: "2023-12-25T18:00",
+      expectedPrice: 1160,
+      description: "8 personer, 2 banor",
+    },
+    {
       people: 1,
       lanes: 1,
-      bookingId: "STR4444",
-      price: 220,
-    };
-
-    renderConfirmation(confirmationDetails);
-
-    expect(screen.getByText("220 sek")).toBeInTheDocument();
-  });
-
-  // Acceptanskriterium 3: Större bokning med många spelare och banor
-  it("ska beräkna korrekt pris för 12 personer och 3 banor (120*12 + 100*3 = 1740 kr)", () => {
-    const confirmationDetails = {
-      when: "2023-12-25T18:00",
+      expectedPrice: 220,
+      description: "1 person, 1 bana (minsta bokning)",
+    },
+    {
       people: 12,
       lanes: 3,
-      bookingId: "STR5555",
-      price: 1740,
-    };
+      expectedPrice: 1740,
+      description: "12 personer, 3 banor",
+    },
+  ])(
+    "ska beräkna korrekt pris för $description: $expectedPrice kr",
+    ({ people, lanes, expectedPrice }) => {
+      const confirmationDetails = {
+        when: "2023-12-25T18:00",
+        people,
+        lanes,
+        bookingId: "STR1234",
+        price: expectedPrice,
+      };
 
-    renderConfirmation(confirmationDetails);
+      renderConfirmation(confirmationDetails);
 
-    expect(screen.getByText("1740 sek")).toBeInTheDocument();
-  });
+      expect(screen.getByText(`${expectedPrice} sek`)).toBeInTheDocument();
+    }
+  );
 });
